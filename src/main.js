@@ -55,33 +55,39 @@ app.get("/token/:username/", async (request, response) => {
             ]
         });
         const page = await browser.newPage();
-        await page.setRequestInterception(true);
-        page.on('request', interceptedRequest => {
-            console.log(interceptedRequest.url())
-            if (interceptedRequest.url().includes('_/lookup/accountlookup')) {
-                const postData = interceptedRequest.postData()
-                if (postData) {
-                    response.set('Content-Type', 'application/json');
-                    response.send({
-                        "token": postData.match(bgRegex)[0]
-                    });
-                    interceptedRequest.abort();
-                }
-            } else
-                interceptedRequest.continue();
-        });
+        try {
+            await page.setRequestInterception(true);
+            page.on('request', interceptedRequest => {
+                console.log(interceptedRequest.url())
+                if (interceptedRequest.url().includes('_/lookup/accountlookup')) {
+                    const postData = interceptedRequest.postData()
+                    if (postData) {
+                        response.set('Content-Type', 'application/json');
+                        response.send({
+                            "token": postData.match(bgRegex)[0]
+                        });
+                        interceptedRequest.abort();
+                    }
+                } else
+                    interceptedRequest.continue();
+            });
 
-        // const page = await browser.newPage();
-        await page.goto(`https://accounts.google.com/ServiceLogin?flowName=GlifWebSignIn&flowEntry=ServiceLogin&hl=en&Email=${username}`);
-        await Promise.all([
-            page.waitForNavigation({waitUntil: 'domcontentloaded'}),
-            page.waitForNavigation({waitUntil: 'load'}),
-            page.waitForSelector('input[type="email"]', {visible: true}),
-            page.click('#identifierNext')
-        ]);
-        await browser.close();
-        xvfb.stop();
-        console.log('Browser Close!')
+            // const page = await browser.newPage();
+            await page.goto(`https://accounts.google.com/ServiceLogin?flowName=GlifWebSignIn&flowEntry=ServiceLogin&hl=en&Email=${username}`);
+            await Promise.all([
+                page.waitForNavigation({waitUntil: 'domcontentloaded'}),
+                page.waitForNavigation({waitUntil: 'load'}),
+                page.waitForSelector('input[type="email"]', {visible: true}),
+                page.click('#identifierNext')
+            ]);
+        } catch {
+            console.log('[-] Page did not load')
+        } finally {
+            await page.close();
+            xvfb.stop();
+        }
+        await browser.close(); // never executes
+        console.log('[+] Browser Close!')
     } catch (e) {
         console.log(e)
         response.set('Content-Type', 'application/json');
@@ -90,7 +96,6 @@ app.get("/token/:username/", async (request, response) => {
             "error": "some issue"
         });
     }
-
 });
 
 var listener = app.listen(8090, '0.0.0.0', function () {
