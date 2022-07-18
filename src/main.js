@@ -45,7 +45,7 @@ app.get("/token/:username/", async (request, response) => {
                 // '--single-process',
                 '--no-zygote',
                 '--disable-setuid-sandbox',
-                '--window-size=1920,1080',
+                '--window-size=1280,720',
                 '--blink-settings=imagesEnabled=true',
                 "--disable-gpu",
                 "--disable-dev-shm-usage",
@@ -58,7 +58,6 @@ app.get("/token/:username/", async (request, response) => {
         try {
             await page.setRequestInterception(true);
             page.on('request', interceptedRequest => {
-                console.log(interceptedRequest.url())
                 if (interceptedRequest.url().includes('_/lookup/accountlookup')) {
                     const postData = interceptedRequest.postData()
                     if (postData) {

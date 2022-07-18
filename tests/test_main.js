@@ -25,11 +25,11 @@ puppeteer.use(preferences)
         ignoreHTTPSErrors: true,
         args: [
             '--no-sandbox',
-            '--single-process',
+            // '--single-process',
             '--no-zygote',
             '--disable-setuid-sandbox',
-            '--window-size=1920,1080',
-            '--blink-settings=imagesEnabled=true',
+            '--window-size=1280,720',
+            '--blink-settings=imagesEnabled=false',
             "--disable-gpu",
             "--disable-dev-shm-usage",
             '--no-first-run',
@@ -41,7 +41,6 @@ puppeteer.use(preferences)
     await page.setRequestInterception(true);
 
     page.on('request', interceptedRequest => {
-        console.log(interceptedRequest.url())
         if (interceptedRequest.url().includes('_/lookup/accountlookup')) {
             console.log(interceptedRequest.postData())
             interceptedRequest.abort();
@@ -53,7 +52,8 @@ puppeteer.use(preferences)
         timeout: 10000,
         waitUntil: ['domcontentloaded', 'networkidle0']
     };
-    await page.goto('https://accounts.google.com/ServiceLogin?flowName=GlifWebSignIn&flowEntry=ServiceLogin&hl=en&Email=romanus',
+    await page.goto(
+        'https://accounts.google.com/ServiceLogin?flowName=GlifWebSignIn&flowEntry=ServiceLogin&hl=en&Email=romanus',
         pageLoadOptions);
     await page.screenshot({path: '../.cache/screenshot_1.png'});
     await Promise.all([
